@@ -1,5 +1,7 @@
 ---
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -14,40 +16,80 @@ knitr::opts_chunk$set(
 ```
 # sfgbuilder
 
+The goal of sfgbuilder is a bare minimum examples of building sf package `sfg` objects from various set-based forms. 
+
+This is to augment the official `st_polygon` and alikes so that lists of raw coordinates can be turned into lists of sfg objects with minimal overhead. The aim is to allow various forms of grouping specifications. Currently only for polygons and only for rectangles, specifically to speed up the `spex` package `polygonize` function, but with more support for silicate forms over time. 
+
+## Dev
 
 ```R
 tools::package_native_routine_registration_skeleton("../sfgbuilder", "src/init.c",character_only = FALSE)
 ```
-The goal of sfgbuilder is to ...
-
-## Installation
-
-You can install the released version of sfgbuilder from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("sfgbuilder")
-```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Let's polygonize a raster, i.e. expand its six numbers of extent, dimension into 5 times the product of the dimensions. 
 
 ```{r example}
-## basic example code
+qm <- quadmesh::quadmesh(raster::raster(volcano), z = NULL)
+## a dummy structure to copy
+template <- structure(list(cbind(1:5, 0)),
+                      class = c("XY", "POLYGON", "sfg"))
+
+nquads <- ncol(qm$ib)
+
+idx <- rep(seq(0, nquads), each = 5L) + c(1L, 2L, 3L, 4L, 1L)
+quadgroups <- rep(seq_len(nquads), each = 5)
+idx <- rbind(qm$ib, qm$ib[1,])
+xylist <- split(c(t(qm$vb[1:2, idx])), rep(quadgroups, 2L))
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Slow code. 
 
-```{r cars}
-summary(cars)
+```{r slow}
+system.time({
+
+## TODO: speed up, this is the slow part of spex::polygonize
+ l <- lapply(seq_along(xylist), function(ii) {
+   template[[1L]][] <- xylist[[ii]]
+   template
+ })
+})
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
+Faster code. 
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r faster}
+library(sfgbuilder)
+system.time(p <- build_polygons(xylist))
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub!
+```{r check}
+identical(l, p)
+```
+
+Does it scale?  (Yes, but only up to a point - you don't really want to be creating many polygons like this, it's super-wasteful and unnecessary. This project is an illustration for more general application than this basic task. We *could* make this super fast by not having the mesh and so forth, but it's just not a good idea to expand compact structures like this). 
+
+```{r}
+r <- raster::raster(ncols = 600, nrows = 300)
+qm <- quadmesh::quadmesh(r, z = NULL)
+
+
+
+nquads <- ncol(qm$ib)
+idx <- rep(seq(0, nquads), each = 5L) + c(1L, 2L, 3L, 4L, 1L)
+quadgroups <- rep(seq_len(nquads), each = 5)
+idx <- rbind(qm$ib, qm$ib[1,])
+xylist <- split(c(t(qm$vb[1:2, idx])), rep(quadgroups, 2L))
+
+
+system.time(p <- build_polygons(xylist))
+
+system.time(spex::polygonize(r))
+
+pryr::object_size(r)
+pryr::object_size(quadmesh::quadmesh(r, z = NULL))
+pryr::object_size(p)
+
+
+```
