@@ -18,7 +18,8 @@ knitr::opts_chunk$set(
 
 The goal of sfgbuilder is a bare minimum examples of building sf package `sfg` objects from various set-based forms. 
 
-This is to augment the official `st_polygon` and alikes so that lists of raw coordinates can be turned into lists of sfg objects with minimal overhead. The aim is to allow various forms of grouping specifications. Currently only for polygons and only for rectangles, specifically to speed up the `spex` package `polygonize` function, but with more support for silicate forms over time. 
+This is to augment the official `st_polygon` and alikes so that lists of raw coordinates can be turned into lists of sfg objects with minimal overhead. The aim is to allow various forms of grouping specifications. Currently only allows input of a list of flat vectors, but various XY, XYZ, XYM, XYZM should work for POLYGON. This is specifically to speed up the `spex` package `polygonize` function, but with more support for silicate forms over time. 
+
 
 ## Dev
 
@@ -61,7 +62,7 @@ Faster code.
 
 ```{r faster}
 library(sfgbuilder)
-system.time(p <- build_polygons(xylist))
+system.time(p <- build_sfg_x(xylist))
 ```
 
 ```{r check}
@@ -83,7 +84,7 @@ idx <- rbind(qm$ib, qm$ib[1,])
 xylist <- split(c(t(qm$vb[1:2, idx])), rep(quadgroups, 2L))
 
 
-system.time(p <- build_polygons(xylist))
+system.time(p <- build_sfg_x(xylist))
 
 system.time(spex::polygonize(r))
 

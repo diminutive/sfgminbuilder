@@ -1,8 +1,11 @@
 context("test-sfg.R")
 
 ## build sf is too slow
+r <- raster::raster(matrix(1:12, 3))
 
-qm <- quadmesh::quadmesh(raster::raster(matrix(1:12, 3)), z = NULL)
+library(raster)
+#r <- disaggregate(raster(volcano), fact = 20)
+qm <- quadmesh::quadmesh(r, z = NULL)
 ## a dummy structure to copy
 template <- structure(list(cbind(1:5, 0)),
                       class = c("XY", "POLYGON", "sfg"))
@@ -19,7 +22,9 @@ xylist <- split(c(t(qm$vb[1:2, idx])), rep(quadgroups, 2L))
    template
  })
 
-p <- build_polygons(xylist)
+rbenchmark::benchmark(build_sfg_x(xylist))
+
+#spex::polygonize(r))
 
 test_that("multiplication works", {
   expect_identical(l, p)

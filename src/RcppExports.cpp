@@ -5,14 +5,16 @@
 
 using namespace Rcpp;
 
-// build_polygons
-List build_polygons(List data_xy);
-RcppExport SEXP _sfgbuilder_build_polygons(SEXP data_xySEXP) {
+// build_sfg_x
+List build_sfg_x(List data_x, CharacterVector type, CharacterVector gtype);
+RcppExport SEXP _sfgbuilder_build_sfg_x(SEXP data_xSEXP, SEXP typeSEXP, SEXP gtypeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type data_xy(data_xySEXP);
-    rcpp_result_gen = Rcpp::wrap(build_polygons(data_xy));
+    Rcpp::traits::input_parameter< List >::type data_x(data_xSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type gtype(gtypeSEXP);
+    rcpp_result_gen = Rcpp::wrap(build_sfg_x(data_x, type, gtype));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -5,7 +5,7 @@ sfgbuilder
 
 The goal of sfgbuilder is a bare minimum examples of building sf package `sfg` objects from various set-based forms.
 
-This is to augment the official `st_polygon` and alikes so that lists of raw coordinates can be turned into lists of sfg objects with minimal overhead. The aim is to allow various forms of grouping specifications. Currently only for polygons and only for rectangles, specifically to speed up the `spex` package `polygonize` function, but with more support for silicate forms over time.
+This is to augment the official `st_polygon` and alikes so that lists of raw coordinates can be turned into lists of sfg objects with minimal overhead. The aim is to allow various forms of grouping specifications. Currently only allows input of a list of flat vectors, but various XY, XYZ, XYM, XYZM should work for POLYGON. This is specifically to speed up the `spex` package `polygonize` function, but with more support for silicate forms over time.
 
 Dev
 ---
@@ -45,16 +45,16 @@ system.time({
  })
 })
 #>    user  system elapsed 
-#>   0.043   0.000   0.044
+#>   0.046   0.001   0.046
 ```
 
 Faster code.
 
 ``` r
 library(sfgbuilder)
-system.time(p <- build_polygons(xylist))
+system.time(p <- build_sfg_x(xylist))
 #>    user  system elapsed 
-#>   0.010   0.000   0.011
+#>   0.005   0.000   0.004
 ```
 
 ``` r
@@ -65,7 +65,8 @@ identical(l, p)
 Does it scale? (Yes, but only up to a point - you don't really want to be creating many polygons like this, it's super-wasteful and unnecessary. This project is an illustration for more general application than this basic task. We *could* make this super fast by not having the mesh and so forth, but it's just not a good idea to expand compact structures like this).
 
 ``` r
-qm <- quadmesh::quadmesh(raster::raster(ncols = 360, nrows = 180), z = NULL)
+r <- raster::raster(ncols = 600, nrows = 300)
+qm <- quadmesh::quadmesh(r, z = NULL)
 
 
 
@@ -76,11 +77,18 @@ idx <- rbind(qm$ib, qm$ib[1,])
 xylist <- split(c(t(qm$vb[1:2, idx])), rep(quadgroups, 2L))
 
 
-system.time(p <- build_polygons(xylist))
+system.time(p <- build_sfg_x(xylist))
 #>    user  system elapsed 
-#>   0.122   0.004   0.127
+#>   0.621   0.032   0.654
 
-system.time(spex::polygonize(raster::raster(ncols = 360, nrows = 180)))
+system.time(spex::polygonize(r))
 #>    user  system elapsed 
-#>   0.950   0.024   0.974
+#>   2.966   0.137   3.103
+
+pryr::object_size(r)
+#> 10.6 kB
+pryr::object_size(quadmesh::quadmesh(r, z = NULL))
+#> 11.6 MB
+pryr::object_size(p)
+#> 82.1 MB
 ```

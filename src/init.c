@@ -8,10 +8,10 @@
 */
 
 /* .Call calls */
-extern SEXP _sfgbuilder_build_polygons(SEXP);
+extern SEXP _sfgbuilder_build_sfg_x(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sfgbuilder_build_polygons", (DL_FUNC) &_sfgbuilder_build_polygons, 1},
+    {"_sfgbuilder_build_sfg_x", (DL_FUNC) &_sfgbuilder_build_sfg_x, 3},
     {NULL, NULL, 0}
 };
 
