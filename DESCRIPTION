@@ -10,7 +10,8 @@ ByteCompile: true
 LinkingTo: 
     Rcpp
 Imports: 
-    Rcpp
+    Rcpp,
+    RcppProgress
 Suggests: 
     testthat
 RoxygenNote: 6.0.1
